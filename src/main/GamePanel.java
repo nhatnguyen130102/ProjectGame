@@ -17,8 +17,9 @@ public class GamePanel extends JPanel implements Runnable {
     int FPS = 60;
 
     Keyhandler keyH = new Keyhandler();
+    Mousehandler mouseH = new Mousehandler();
     Thread gameThread;
-    Player player = new Player(this, keyH);
+    Player player = new Player(this, keyH, mouseH);
     // Set player's default position
 
     public GamePanel() {
@@ -26,6 +27,7 @@ public class GamePanel extends JPanel implements Runnable {
         this.setBackground(Color.BLACK);
         this.setDoubleBuffered(true);
         this.addKeyListener(keyH);
+        this.addMouseListener(mouseH);
         this.setFocusable(true);
     }
 
