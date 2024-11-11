@@ -13,8 +13,10 @@ public class GamePanel extends JPanel implements Runnable {
     public final int TILESIZE = ORIGINALTILESIZE * SCALE;
     final int MAXSCREENCOL = 16;
     final int MAXSCREENROW = 12;
-    final int SCREENWIDTH = TILESIZE * MAXSCREENCOL;
-    final int SCREENHEIGHT = TILESIZE * MAXSCREENROW;
+    public final int SCREENWIDTH = TILESIZE * MAXSCREENCOL;
+    public final int SCREENHEIGHT = TILESIZE * MAXSCREENROW;
+
+    // FPS
     int FPS = 60;
 
     Keyhandler keyH = new Keyhandler();
@@ -22,7 +24,6 @@ public class GamePanel extends JPanel implements Runnable {
     Thread gameThread;
     Player player = new Player(this, keyH, mouseH);
     TileManager tileManager = new TileManager(this);
-    // Set player's default position
 
     public GamePanel() {
         this.setPreferredSize(new Dimension(SCREENWIDTH, SCREENHEIGHT));
@@ -72,5 +73,8 @@ public class GamePanel extends JPanel implements Runnable {
         tileManager.draw(graphics2D);
         player.draw(graphics2D);
         graphics2D.dispose();
+    }
+    public Player getPlayer(){
+        return player;
     }
 }

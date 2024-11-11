@@ -14,19 +14,24 @@ public class Player extends Entity {
     GamePanel gamePanel;
     Keyhandler keyH;
     Mousehandler mouseH;
+    public final int screenX;
+    public final int screenY;
 
     public Player(GamePanel gamePanel, Keyhandler keyH, Mousehandler mouseH) {
         this.gamePanel = gamePanel;
         this.keyH = keyH;
         this.mouseH = mouseH;
+        screenX = (gamePanel.SCREENWIDTH / 2) - (gamePanel.TILESIZE / 2);
+        screenY = (gamePanel.SCREENHEIGHT/ 2) - (gamePanel.TILESIZE / 2);
+
         setDefaultValues();
         getPlayerMovingImage();
         getPlayerActionImage();
     }
 
     public void setDefaultValues() {
-        x = 100;
-        y = 100;
+        worldX = 100;
+        worldY = 100;
         speed = 4;
         direction = "down";
         typeAction = "";
@@ -77,23 +82,22 @@ public class Player extends Entity {
         }
 
     }
-
     public void update() {
         if (keyH.upPressed) {
             direction = "up";
-            y -= speed;
+            worldY -= speed;
             moving = true;
         } else if (keyH.downPressed) {
             direction = "down";
-            y += speed;
+            worldY += speed;
             moving = true;
         } else if (keyH.leftPressed) {
             direction = "left";
-            x -= speed;
+            worldX -= speed;
             moving = true;
         } else if (keyH.rightPressed) {
             direction = "right";
-            x += speed;
+            worldX += speed;
             moving = true;
         } else {
             moving = false;
@@ -126,9 +130,7 @@ public class Player extends Entity {
     public void draw(Graphics2D graphics2D) {
         BufferedImage image;
 
-        int row;
-        int rowAction;
-        row = switch (direction) {
+        int row = switch (direction) {
             case "up" -> 1;
             case "down" -> 0;
             case "left" -> 2;
@@ -136,8 +138,7 @@ public class Player extends Entity {
             default -> 0;
         };
 
-
-        rowAction = switch (typeAction) {
+        int rowAction = switch (typeAction) {
             case "hoe" -> switch (direction) {
                 case "down" -> 0;
                 case "up" -> 1;
@@ -167,6 +168,21 @@ public class Player extends Entity {
         } else {
             image = playerActionSprite[rowAction][spriteActionNum];
         }
-        graphics2D.drawImage(image, x, y, gamePanel.TILESIZE * 3, gamePanel.TILESIZE * 3, null);
+
+        int cameraX = worldX - screenX;
+        int cameraY = worldY - screenY;
+
+        int maxCameraX = gamePanel.TILESIZE * 50 - gamePanel.SCREENWIDTH;
+        int maxCameraY = gamePanel.TILESIZE * 50 - gamePanel.SCREENHEIGHT;
+
+        if (cameraX < 0) cameraX = 0;
+        if (cameraY < 0) cameraY = 0;
+        if (cameraX > maxCameraX) cameraX = maxCameraX;
+        if (cameraY > maxCameraY) cameraY = maxCameraY;
+
+        graphics2D.drawImage(image, screenX, screenY, gamePanel.TILESIZE * 3, gamePanel.TILESIZE * 3, null);
+
+
     }
+
 }
