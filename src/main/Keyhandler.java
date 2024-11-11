@@ -33,6 +33,9 @@ public class Keyhandler implements KeyListener{
         if(code == KeyEvent.VK_2){
             tool = "chop";
         }
+        if(code == KeyEvent.VK_3){
+            tool = "water";
+        }
 
     }
 

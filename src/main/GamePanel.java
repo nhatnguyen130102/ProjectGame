@@ -1,6 +1,7 @@
 package main;
 
 import entity.Player;
+import tile.TileManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,6 +21,7 @@ public class GamePanel extends JPanel implements Runnable {
     Mousehandler mouseH = new Mousehandler();
     Thread gameThread;
     Player player = new Player(this, keyH, mouseH);
+    TileManager tileManager = new TileManager(this);
     // Set player's default position
 
     public GamePanel() {
@@ -42,13 +44,8 @@ public class GamePanel extends JPanel implements Runnable {
         double nextDrawTime = System.nanoTime() + drawInterval;
 
         while (gameThread != null) {
-
-            // update information such as character positions
             update();
-
-            // draw the screen width the updated information
             repaint();
-
             try {
                 double remainingTime = nextDrawTime - System.nanoTime();
                 remainingTime = remainingTime / 1000000;
@@ -72,6 +69,7 @@ public class GamePanel extends JPanel implements Runnable {
     public void paintComponent(Graphics graphics) {
         super.paintComponent(graphics);
         Graphics2D graphics2D = (Graphics2D) graphics;
+        tileManager.draw(graphics2D);
         player.draw(graphics2D);
         graphics2D.dispose();
     }

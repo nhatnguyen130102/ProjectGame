@@ -8,6 +8,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.Objects;
 
 public class Player extends Entity {
     GamePanel gamePanel;
@@ -28,12 +29,12 @@ public class Player extends Entity {
         y = 100;
         speed = 4;
         direction = "down";
-        typeAction = "hoe";
+        typeAction = "";
     }
 
     public void getPlayerMovingImage() {
         try {
-            playerMovingImage = ImageIO.read(getClass().getResourceAsStream("/player/Basic Charakter Spritesheet.png"));
+            playerMovingImage = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/player/Basic Charakter Spritesheet.png")));
             // width = height = 48
             int widthImage = playerMovingImage.getWidth();
             int heightImage = playerMovingImage.getHeight();
@@ -57,7 +58,7 @@ public class Player extends Entity {
 
     public void getPlayerActionImage() {
         try {
-            playerActionImage = ImageIO.read(getClass().getResourceAsStream("/player/Basic Charakter Actions.png"));
+            playerActionImage = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/player/Basic Charakter Actions.png")));
             // width = height = 48
             int widthImage = playerActionImage.getWidth();
             int heightImage = playerActionImage.getHeight();
@@ -101,14 +102,10 @@ public class Player extends Entity {
             typeAction = keyH.tool;
         }
 
-        if (mouseH.leftMousePressed) {
-            action = true;
-        } else {
-            action = false;
-        }
+        action = mouseH.leftMousePressed && !typeAction.isEmpty();
         if (action) {
             spriteActionCounter++;
-            if (spriteActionCounter > 10) {
+            if (spriteActionCounter > 20) {
                 spriteActionNum = (spriteActionNum + 1) % 2;
                 spriteActionCounter = 0;
             }
@@ -127,72 +124,43 @@ public class Player extends Entity {
     }
 
     public void draw(Graphics2D graphics2D) {
-        BufferedImage image = null;
+        BufferedImage image;
 
         int row;
-        int rowAction = 0;
-        switch (direction) {
-            case "up":
-                row = 1;
-                break;
-            case "down":
-                row = 0;
-                break;
-            case "left":
-                row = 2;
-                break;
-            case "right":
-                row = 3;
-                break;
-            default:
-                row = 0;
-                break;
-        }
+        int rowAction;
+        row = switch (direction) {
+            case "up" -> 1;
+            case "down" -> 0;
+            case "left" -> 2;
+            case "right" -> 3;
+            default -> 0;
+        };
 
 
-        switch (typeAction) {
-            case "hoe":
-                switch (direction) {
-                    case "down":
-                        rowAction = 0;
-                        break;
-                    case "up":
-                        rowAction = 1;
-                        break;
-                    case "left":
-                        rowAction = 2;
-                        break;
-                    case "right":
-                        rowAction = 3;
-                        break;
-                    default:
-                        rowAction = 0;
-                }
-                break;
-
-            case "chop":
-                switch (direction) {
-                    case "up":
-                        rowAction = 5;
-                        break;
-                    case "down":
-                        rowAction = 4;
-                        break;
-                    case "left":
-                        rowAction = 6;
-                        break;
-                    case "right":
-                        rowAction = 7;
-                        break;
-                    default:
-                        rowAction = 0;
-                }
-                break;
-
-            default:
-                rowAction = 0;
-                break;
-        }
+        rowAction = switch (typeAction) {
+            case "hoe" -> switch (direction) {
+                case "down" -> 0;
+                case "up" -> 1;
+                case "left" -> 2;
+                case "right" -> 3;
+                default -> 0;
+            };
+            case "chop" -> switch (direction) {
+                case "up" -> 5;
+                case "down" -> 4;
+                case "left" -> 6;
+                case "right" -> 7;
+                default -> 0;
+            };
+            case "water" -> switch (direction) {
+                case "up" -> 9;
+                case "down" -> 8;
+                case "left" -> 10;
+                case "right" -> 11;
+                default -> 0;
+            };
+            default -> 0;
+        };
 
         if (!action) {
             image = playerMovingSprite[row][spriteNum];
