@@ -3,36 +3,40 @@ package tile;
 import main.GamePanel;
 import utilities.LoadAndSave;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
-import java.util.Objects;
 
 import static utilities.Helper.GetMapData;
 
-public class TileManager extends Tile {
+public class Layer1 extends Tile {
     GamePanel gamePanel;
     public int widthMap;
     public int heightMap;
     private static BufferedImage map = null;
-    private Map<Point, BufferedImage> modifiedTiles = new HashMap<>(); // Lưu các tile đã được thay đổi
+    private Map<Point, BufferedImage> modifiedTilesLayer1 = new HashMap<>(); // Lưu các tile đã được thay đổi
+    private Map<Point, Long> plantingTime = new HashMap<>(); // Thời gian trồng cây
+    private Map<Point, Integer> plantGrowing = new HashMap<>();
+    private Map<Point, Boolean> planted = new HashMap<>();
+    private Map<Point, Boolean> growed = new HashMap<>();
 
 
-    public TileManager(GamePanel gamePanel) {
+    private static final long PLANTING_DURATION = 2000; // Thời gian trong mili giây
+
+    public Layer1(GamePanel gamePanel) {
         this.gamePanel = gamePanel;
         getTilesImage();
-        getModifyTilesImage();
         map = LoadAndSave.LoadImage("/map/map.png");
         assert map != null;
         widthMap = map.getWidth();
         heightMap = map.getHeight();
+        getModifyTilesImage();
     }
 
     private void getTilesImage() {
-        tileImage = LoadAndSave.LoadImage("/tiles/Hills.png");
+        tileImage = LoadAndSave.LoadImage("/tiles/Tilled_Dirt.png");
         assert tileImage != null;
         int widthImage = tileImage.getWidth();
         int heightImage = tileImage.getHeight();
@@ -47,15 +51,16 @@ public class TileManager extends Tile {
                 tileSprite[index] = tileImage.getSubimage(x * width, y * height, width, height);
             }
         }
+
     }
 
     private void getModifyTilesImage() {
-        modifyTile = LoadAndSave.LoadImage("/tiles/Tilled_Dirt.png");
+        modifyTile = LoadAndSave.LoadImage("/plants/Basic_Plants.png");
         assert modifyTile != null;
         int widthImage = modifyTile.getWidth();
         int heightImage = modifyTile.getHeight();
-        int cols = 11;
-        int rows = 7;
+        int cols = 6;
+        int rows = 2;
         int width = widthImage / cols;
         int height = heightImage / rows;
         modifyTileSprite = new BufferedImage[rows * cols];
@@ -67,37 +72,62 @@ public class TileManager extends Tile {
         }
     }
 
-    public static int[][] getMapData() {
+    public static int[][] getLayerData() {
         return GetMapData(map);
     }
 
-    public void interactWithTile(int mouseX, int mouseY) {
+    public void planting(int mouseX, int mouseY) {
         // Chuyển tọa độ chuột sang tọa độ thế giới (tính toán theo tile)
         int tileX = mouseX / gamePanel.TILESIZE;
         int tileY = mouseY / gamePanel.TILESIZE;
 
         if (tileX >= 0 && tileX < widthMap && tileY >= 0 && tileY < heightMap) {
 
-            modifiedTiles.put(new Point(tileX, tileY), modifyTileSprite[12]);
+            modifiedTilesLayer1.put(new Point(tileX, tileY), modifyTileSprite[1]);
+            plantingTime.put(new Point(tileX, tileY), System.currentTimeMillis());
+            plantGrowing.put(new Point(tileX, tileY), 1);
+            planted.put(new Point(tileX, tileY), true);
+            growed.put(new Point(tileX, tileY), false);
+
+        }
+    }
+
+    public void update() {
+        long currentTime = System.currentTimeMillis();
+        for (Point point : planted.keySet()) {
+            long timeElapsed = currentTime - plantingTime.get(point);
+            if (timeElapsed >= PLANTING_DURATION) {
+                if (planted.get(point)) {
+                    int index = plantGrowing.get(point);
+                    index += 1;
+                    if (index >= 5) {
+                        plantingTime.remove(point);
+                        plantGrowing.remove(point);
+                        planted.put(point,false);
+                        growed.put(point,true);
+                    } else {
+                        if (index < modifyTileSprite.length) {
+                            modifiedTilesLayer1.put(point, modifyTileSprite[index]);
+                            plantGrowing.put(point, index);
+                        }
+                    }
+                    plantingTime.put(point, currentTime);
+                }
+
+            }
         }
     }
 
 
-    public boolean hasModifiedTile(int x, int y) {
-        int _x = x / gamePanel.TILESIZE;
-        int _y = y / gamePanel.TILESIZE;
-
-        return modifiedTiles.containsKey(new Point(_x, _y));
-    }
-
     public void draw(Graphics2D graphics2D) {
+
         int cameraX = gamePanel.getPlayer().worldX - gamePanel.getPlayer().screenX;
         int cameraY = gamePanel.getPlayer().worldY - gamePanel.getPlayer().screenY;
 
         for (int y = 0; y < heightMap; y++) {
             for (int x = 0; x < widthMap; x++) {
                 Color color = new Color(map.getRGB(x, y));
-                int value = color.getGreen(); // Lấy giá trị màu xanh
+                int value = color.getGreen();
 
                 if (value > 0 && value <= tileSprite.length) {
                     int worldX = x * gamePanel.TILESIZE;
@@ -105,21 +135,12 @@ public class TileManager extends Tile {
                     int screenX = worldX - cameraX;
                     int screenY = worldY - cameraY;
 
-//                    System.out.println(   modifiedTiles.size());
-                    // Kiểm tra nếu tile này đã được thay đổi (modified)
-                    if (modifiedTiles.containsKey(new Point(x, y))) {
+                    if (modifiedTilesLayer1.containsKey(new Point(x, y))) {
                         // Vẽ tile đã thay đổi
-                        graphics2D.drawImage(modifiedTiles.get(new Point(x, y)), screenX, screenY, gamePanel.TILESIZE, gamePanel.TILESIZE, null);
-                    } else {
-                        // Vẽ tile mặc định
-                        if (screenX + gamePanel.TILESIZE > 0 && screenX < gamePanel.SCREENWIDTH &&
-                                screenY + gamePanel.TILESIZE > 0 && screenY < gamePanel.SCREENHEIGHT) {
-                            graphics2D.drawImage(tileSprite[value - 1], screenX, screenY, gamePanel.TILESIZE, gamePanel.TILESIZE, null);
-                        }
+                        graphics2D.drawImage(modifiedTilesLayer1.get(new Point(x, y)), screenX, screenY, gamePanel.TILESIZE, gamePanel.TILESIZE, null);
                     }
                 }
             }
         }
     }
-
 }

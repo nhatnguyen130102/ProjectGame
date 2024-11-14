@@ -3,10 +3,12 @@ package main;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
+import static utilities.Constants.PlayerConstant.*;
+
 public class Keyhandler implements KeyListener{
 
     public boolean upPressed,downPressed, leftPressed, rightPressed;
-    public String tool;
+    public int tool;
     @Override
     public void keyTyped(KeyEvent e) {
 
@@ -28,13 +30,13 @@ public class Keyhandler implements KeyListener{
             rightPressed = true;
         }
         if(code == KeyEvent.VK_1){
-            tool = "hoe";
+            tool = HOE;
         }
         if(code == KeyEvent.VK_2){
-            tool = "chop";
+            tool = CHOP;
         }
         if(code == KeyEvent.VK_3){
-            tool = "water";
+            tool = WATER;
         }
 
     }
